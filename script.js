@@ -790,7 +790,48 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileMenuBtn.setAttribute('aria-expanded', String(!isExpanded));
       mainNav.classList.toggle('active');
     });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (mainNav.classList.contains('active') && !mainNav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        mainNav.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
   }
+
+  // Mobile & keyboard dropdown toggles
+  const navDropdownToggles = document.querySelectorAll('.nav-item.has-dropdown .dropdown-toggle');
+  navDropdownToggles.forEach(toggleBtn => {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const parentItem = toggleBtn.closest('.has-dropdown');
+      if (parentItem) {
+        const isOpen = parentItem.classList.contains('open');
+        // Close siblings
+        document.querySelectorAll('.nav-item.has-dropdown.open').forEach(item => {
+          if (item !== parentItem) {
+            item.classList.remove('open');
+            const otherBtn = item.querySelector('.dropdown-toggle');
+            if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+        parentItem.classList.toggle('open', !isOpen);
+        toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+      }
+    });
+  });
+
+  // Auto-close mobile drawer on link navigation
+  const navActionLinks = mainNav ? mainNav.querySelectorAll('a') : [];
+  navActionLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768 && mainNav && mainNav.classList.contains('active')) {
+        mainNav.classList.remove('active');
+        if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
 
   // Secondary CTA buttons handling
   const heroLearnMoreBtn = document.getElementById('heroLearnMoreBtn');
@@ -809,11 +850,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const loginBtn = document.getElementById('loginBtn');
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      alert('CBM India Partner & Supporter Portal login dialog.');
-    });
-  }
+  const mobileDrawerLoginBtn = document.getElementById('mobileDrawerLoginBtn');
+  [loginBtn, mobileDrawerLoginBtn].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        if (mainNav && mainNav.classList.contains('active')) {
+          mainNav.classList.remove('active');
+          if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+        alert('CBM India Partner & Supporter Portal login dialog.');
+      });
+    }
+  });
 
   // Work Pillars exploration triggers
   document.querySelectorAll('[data-modal]').forEach(btn => {
